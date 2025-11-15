@@ -365,39 +365,27 @@ body {
 <audio id="notify-sound" src="{% static 'sounds/jai.mp3' %}" preload="auto"></audio>
 
 <script>
-/* ==========================
-   BASIC CONSTANTS
-========================== */
 const roomName = "{{ room_name }}";
 const sender = "{{ request.user.username }}";
 const receiver = "{{ receiver.username }}";
+
+// Use wss for HTTPS, ws for HTTP
 const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
-const chatSocket = new WebSocket(ws_scheme + "://" + window.location.host + "/ws/private/" + roomName + "/");
+const chatSocket = new WebSocket(`${ws_scheme}://${window.location.host}/ws/private/${roomName}/`);
 
-
-
-
-
-/* ==========================
-   TRACK TAB FOCUS
-========================== */
+// Track tab focus
 let windowFocused = true;
 window.onfocus = () => windowFocused = true;
 window.onblur = () => windowFocused = false;
 
-/* ==========================
-   NOTIFICATION PERMISSION
-========================== */
-if (Notification.permission !== "granted") {
-    Notification.requestPermission();
-}
+// Notifications
+if (Notification.permission !== "granted") Notification.requestPermission();
 
 function showNotification(senderName, message) {
     if (Notification.permission === "granted") {
-        new Notification("New message from " + senderName, {
+        new Notification(`New message from ${senderName}`, {
             body: message ? message.substring(0, 60) : "📎 Sent a file",
             icon: "{% if receiver_profile and receiver_profile.profile_pic %}{{ receiver_profile.profile_pic.url }}{% else %}{% static 'img/default.png' %}{% endif %}"
-
         });
     }
 }
@@ -406,40 +394,37 @@ function playSound() {
     document.getElementById("notify-sound").play();
 }
 
-/* ==========================
-   RECEIVE MESSAGE
-========================== */
+// Receive messages
 chatSocket.onmessage = (e) => {
     const data = JSON.parse(e.data);
     const box = document.getElementById("messages");
 
-    // TYPING INDICATOR
+    // Typing indicator
     if (data.type === "typing") {
         if (data.username !== sender) {
-            document.getElementById("typing-status").innerText =
-                data.typing ? "Typing..." : "";
+            document.getElementById("typing-status").innerText = data.typing ? "Typing..." : "";
         }
         return;
     }
 
-    // CREATE MESSAGE DIV
+    // New message div
     const div = document.createElement("div");
     div.classList.add("message", data.sender === sender ? "sent" : "received");
 
-    // TEXT MESSAGE
+    // Text
     if (data.message) {
         const p = document.createElement("p");
         p.innerText = data.message;
         div.appendChild(p);
     }
 
-    // FILE PREVIEW
+    // File preview
     if (data.file_url) {
         const fileUrl = data.file_url;
-        const fileExt = fileUrl.split('.').pop().toLowerCase();
+        const ext = fileUrl.split('.').pop().toLowerCase();
         const imgExt = ["jpg", "jpeg", "png", "gif", "webp"];
 
-        if (imgExt.includes(fileExt)) {
+        if (imgExt.includes(ext)) {
             const a = document.createElement("a");
             a.href = fileUrl;
             a.target = "_blank";
@@ -456,50 +441,43 @@ chatSocket.onmessage = (e) => {
             const a = document.createElement("a");
             a.href = fileUrl;
             a.target = "_blank";
-            a.innerText = "📎 Download " + (fileUrl.split('/').pop());
+            a.innerText = `📎 Download ${fileUrl.split('/').pop()}`;
             a.style.color = "#9BE7FF";
             a.style.display = "inline-block";
             div.appendChild(a);
         }
     }
 
-    // ADD MESSAGE TO BOX
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
 
-    // PLAY SOUND + SHOW NOTIFICATION IF TAB NOT FOCUSED
     if (data.sender !== sender && !windowFocused) {
         playSound();
         showNotification(data.sender, data.message);
     }
 };
 
-/* ==========================
-   SEND TEXT MESSAGE
-========================== */
+// Send message
 function sendMessage() {
     const input = document.getElementById("messageInput");
     const message = input.value.trim();
     if (!message) return;
 
-  chatSocket.send(JSON.stringify({
-    type: "private_message",
-    receiver: receiver,
-    message: message
-}));
-
+    chatSocket.send(JSON.stringify({
+        type: "private_message",
+        receiver: receiver,
+        message: message
+    }));
 
     input.value = "";
 }
 
-
+// Enter key
 document.getElementById("messageInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") sendMessage();
 });
 
-/* ==========================
-   SEND FILE
-========================== */
+// Send file
 function sendFile(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -524,9 +502,7 @@ function sendFile(event) {
     });
 }
 
-/* ==========================
-   TYPING INDICATOR
-========================== */
+// Typing indicator
 let typingTimeout;
 let isTyping = false;
 const inputBox = document.getElementById("messageInput");
@@ -535,9 +511,9 @@ inputBox.addEventListener("input", () => {
     if (!isTyping) {
         isTyping = true;
         chatSocket.send(JSON.stringify({
-            "type": "typing",
-            "username": sender,
-            "typing": true
+            type: "typing",
+            username: sender,
+            typing: true
         }));
     }
 
@@ -545,14 +521,13 @@ inputBox.addEventListener("input", () => {
     typingTimeout = setTimeout(() => {
         isTyping = false;
         chatSocket.send(JSON.stringify({
-            "type": "typing",
-            "username": sender,
-            "typing": false
+            type: "typing",
+            username: sender,
+            typing: false
         }));
     }, 1000);
 });
 </script>
-
 
 </body>
 </html>
