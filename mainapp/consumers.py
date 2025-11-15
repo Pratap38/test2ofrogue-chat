@@ -121,20 +121,28 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             "typing": event["typing"]
         }))
 
-    @database_sync_to_async
-    def save_message(self, sender, receiver, message, file_url=None):
-        from django.contrib.auth import get_user_model
-        from .models import PrivateMessage
+  @database_sync_to_async
+def save_message(self, sender, receiver, message, file_url=None):
+    from django.contrib.auth import get_user_model
+    from .models import PrivateMessage
 
-        User = get_user_model()
+    User = get_user_model()
+    try:
         sender_user = User.objects.get(username=sender)
+    except User.DoesNotExist:
+        sender_user = User.objects.create(username=sender)
+
+    try:
         receiver_user = User.objects.get(username=receiver)
-        PrivateMessage.objects.create(
-            sender=sender_user,
-            receiver=receiver_user,
-            content=message or "",
-            file=file_url or None
-        )
+    except User.DoesNotExist:
+        receiver_user = User.objects.create(username=receiver)
+
+    PrivateMessage.objects.create(
+        sender=sender_user,
+        receiver=receiver_user,
+        content=message or "",
+        file=file_url or None
+    )
 
     @database_sync_to_async
     def save_file(self, file_base64):
