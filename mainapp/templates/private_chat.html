@@ -371,7 +371,9 @@ body {
 const roomName = "{{ room_name }}";
 const sender = "{{ request.user.username }}";
 const receiver = "{{ receiver.username }}";
-const chatSocket = new WebSocket("ws://" + window.location.host + "/ws/private/" + roomName + "/");
+const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+const chatSocket = new WebSocket(ws_scheme + "://" + window.location.host + "/ws/private/" + roomName + "/");
+
 
 
 
