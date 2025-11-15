@@ -9,3 +9,4 @@ django-crispy-forms
 Pillow
 gunicorn
 daphne
+whitenoise==6.5.0   # or latest version
