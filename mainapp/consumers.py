@@ -2,6 +2,8 @@ import json
 import os
 import uuid
 import base64
+import random
+import string
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.conf import settings
@@ -60,8 +62,6 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
         # Assign a temporary username for anonymous users
         if self.scope["user"].is_anonymous:
-            # Create a guest username
-            import random, string
             guest_name = "Guest_" + "".join(random.choices(string.ascii_letters + string.digits, k=6))
             self.scope["user"].username = guest_name
 
@@ -71,42 +71,41 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
- async def receive(self, text_data=None):
-    if not text_data:
-        return
-    data = json.loads(text_data)
+    async def receive(self, text_data=None):
+        if not text_data:
+            return
+        data = json.loads(text_data)
 
-    # Typing indicator
-    if data.get("type") == "typing":
+        # Typing indicator
+        if data.get("type") == "typing":
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "typing_status",
+                    "username": self.scope["user"].username,
+                    "typing": data.get("typing", False),
+                }
+            )
+            return
+
+        # Private message
+        sender = self.scope["user"].username
+        receiver = data.get("receiver")
+        message = data.get("message", "")
+        file_url = data.get("file_url")
+
+        await self.save_message(sender, receiver, message, file_url)
+
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                "type": "typing_status",
-                "username": self.scope["user"].username,
-                "typing": data.get("typing", False),
+                "type": "private_message",
+                "sender": sender,
+                "receiver": receiver,
+                "message": message,
+                "file_url": file_url,
             }
         )
-        return
-
-    # For private messages
-    sender = self.scope["user"].username
-    receiver = data.get("receiver")
-    message = data.get("message", "")
-    file_url = data.get("file_url")
-
-    await self.save_message(sender, receiver, message, file_url)
-
-    await self.channel_layer.group_send(
-        self.room_group_name,
-        {
-            "type": "private_message",
-            "sender": sender,
-            "receiver": receiver,
-            "message": message,
-            "file_url": file_url,
-        }
-    )
-
 
     async def private_message(self, event):
         await self.send(text_data=json.dumps(event))
@@ -118,28 +117,28 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             "typing": event["typing"]
         }))
 
-  @database_sync_to_async
-def save_message(self, sender, receiver, message, file_url=None):
-    from django.contrib.auth import get_user_model
-    from .models import PrivateMessage
+    @database_sync_to_async
+    def save_message(self, sender, receiver, message, file_url=None):
+        from django.contrib.auth import get_user_model
+        from .models import PrivateMessage
 
-    User = get_user_model()
-    try:
-        sender_user = User.objects.get(username=sender)
-    except User.DoesNotExist:
-        sender_user = User.objects.create(username=sender)
+        User = get_user_model()
+        try:
+            sender_user = User.objects.get(username=sender)
+        except User.DoesNotExist:
+            sender_user = User.objects.create(username=sender)
 
-    try:
-        receiver_user = User.objects.get(username=receiver)
-    except User.DoesNotExist:
-        receiver_user = User.objects.create(username=receiver)
+        try:
+            receiver_user = User.objects.get(username=receiver)
+        except User.DoesNotExist:
+            receiver_user = User.objects.create(username=receiver)
 
-    PrivateMessage.objects.create(
-        sender=sender_user,
-        receiver=receiver_user,
-        content=message or "",
-        file=file_url or None
-    )
+        PrivateMessage.objects.create(
+            sender=sender_user,
+            receiver=receiver_user,
+            content=message or "",
+            file=file_url or None
+        )
 
     @database_sync_to_async
     def save_file(self, file_base64):
