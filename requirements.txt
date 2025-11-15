@@ -1,4 +1,4 @@
-Django==4.3.2
+Django==5.2.8
 djangorestframework
 asgiref>=3.7
 channels
