@@ -4,26 +4,33 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-f^v-*@czlr8xfrt1w!**_(f)5vo_cgozwp^)l_8@t-@49iw_km'
 
-DEBUG = True
+DEBUG = True  # Set False in production
 
-ALLOWED_HOSTS = ['*']
+# ✅ Render deployment host
+ALLOWED_HOSTS = [
+    "test2ofrogue-chat-1.onrender.com",
+]
 
+# ✅ CSRF trusted origins for live site
+CSRF_TRUSTED_ORIGINS = [
+    "https://test2ofrogue-chat-1.onrender.com",
+]
 
 # Application definition
 INSTALLED_APPS = [
-    'daphne',                     # For WebSocket support
+    'daphne',                     
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mainapp',                    # Your main app
+    'mainapp',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ for static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -38,7 +45,7 @@ ROOT_URLCONF = 'instabid.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # You can store common templates here
+        'DIRS': [BASE_DIR / 'templates'],  
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -50,18 +57,15 @@ TEMPLATES = [
     },
 ]
 
-# Channels ASGI setup
 ASGI_APPLICATION = 'instabid.asgi.application'
 WSGI_APPLICATION = 'instabid.wsgi.application'
 
-# Channel Layer (using in-memory for now)
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 
-# Database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -69,7 +73,6 @@ DATABASES = {
     }
 }
 
-# Password validators
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -77,21 +80,18 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# Static files (CSS, JS, etc.)
 STATIC_URL = '/static/'
-# ✅ FIXED
-STATICFILES_DIRS = []
-# or simply remove the line entirely
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # ✅ collectstatic target
+STATICFILES_DIRS = []  # optional if you have extra static dirs
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # ✅ for production
 
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# Media files (for profile pictures)
+# Media files (uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
