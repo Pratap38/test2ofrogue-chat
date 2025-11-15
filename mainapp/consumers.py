@@ -6,6 +6,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 # ------------------------ GLOBAL CHAT ------------------------
 class ChatConsumer(AsyncWebsocketConsumer):
