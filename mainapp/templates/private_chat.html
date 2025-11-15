@@ -482,10 +482,12 @@ function sendMessage() {
     const message = input.value.trim();
     if (!message) return;
 
-    chatSocket.send(JSON.stringify({
-        receiver: receiver,
-        message: message
-    }));
+  chatSocket.send(JSON.stringify({
+    type: "private_message",
+    receiver: receiver,
+    message: message
+}));
+
 
     input.value = "";
 }
