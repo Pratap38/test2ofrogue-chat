@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{% static 'chathome.css' %}">
+  <title>Chats</title>
+  <!-- <style>
+    .chatborder {
+      width: 100%;
+      min-height: 100vh;
+      background: #f7f9fb;
+      font-family: "Poppins", sans-serif;
+    }
+
+    .mainarea {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      border-bottom: 1px solid #ddd;
+      background-color: white;
+    }
+
+    .searchbox input {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .chatblocks {
+      display: flex;
+      height: calc(100vh - 80px);
+    }
+
+    .leftusers {
+      width: 25%;
+      background: #fff;
+      border-right: 1px solid #ddd;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .leftusers h3 {
+      margin-bottom: 10px;
+    }
+
+    .leftusers a {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: #333;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      transition: 0.3s;
+    }
+
+    .leftusers a:hover {
+      background: #007bff;
+      color: #fff;
+    }
+
+    .rightusers {
+      flex: 1;
+      padding: 20px;
+      background: #fafafa;
+      overflow-y: auto;
+    }
+
+    .dropdown-content a {
+      font-weight: 500;
+    }
+  </style> -->
+</head>
+
+<body>
+  <section class="chatborder">
+    <div class="mainarea">
+      <div class="logo">
+        <img src="{% static 'morphee.png' %}" alt="logo" height="40">
+      </div>
+
+      <div class="searchbox">
+        <form method="get" action="{% url 'search' %}">
+          <input type="text" name="q" placeholder="Search users..." />
+        </form>
+      </div>
+
+      <div class="hamburgerright">
+        <div class="dropdown">
+          <button class="dropbtn">▼</button>
+          <div class="dropdown-content">
+            <a href="{% url 'chat' %}">Global Chat</a>
+            <a href="{%url 'create_group'%}">Create Group</a>
+            <a href="{%url 'group_chatpage'%}">Groups</a>
+            <a href="{% url 'logout' %}">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chatblocks">
+      <div class="leftusers">
+        
+       {% if users %}
+    {% for u in users %}
+        <a href="{% url 'private_chat' u.username %}"
+           style="
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                padding:12px 14px;
+                margin-bottom:8px;
+                text-decoration:none;
+                color:#333;
+                background:#f9f9f9;
+                border-radius:10px;
+                transition:0.2s;
+            "
+           onmouseover="this.style.background='#e5f0ff'; this.style.color='#007bff';"
+           onmouseout="this.style.background='#f9f9f9'; this.style.color='#333';"
+        >
+
+            <span style="font-weight:500;">
+                @{{ u.username }}
+            </span>
+
+            {% if u.unread > 0 %}
+                <span style="
+                    background:#ff3b30;
+                    color:white;
+                    padding:3px 8px;
+                    border-radius:20px;
+                    font-size:12px;
+                    font-weight:bold;
+                ">
+                    {{ u.unread }}
+                </span>
+            {% endif %}
+        </a>
+    {% endfor %}
+{% else %}
+    <p>No other users online.</p>
+{% endif %}
+</div>
+
+      <div class="rightusers">
+        <h2>Welcome, {{ request.user.username }} 👋</h2>
+        <p>Select a user from the left to start a private chat or use the dropdown for global chat.</p>
+
+        <ul>
+          <li>💬 Private Chat → One-on-one messages with a user.</li>
+          <li>🌍 Global Chat → Open chat for everyone.</li>
+          <li>🔍 Search → Find users quickly.</li>
+          <li>🚪 Logout anytime from the dropdown.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</body>
+<script>
+  function markRead(userId) {
+    const badge = document.getElementById("unread-" + userId);
+    if (badge) {
+        badge.style.display = "none";   // hide once opened
+    }
+}
+</script>
+</html>

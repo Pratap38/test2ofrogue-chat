@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Group</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            padding: 40px;
+        }
+        .box {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #ccc;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>Create Group</h2>
+
+    <form action="{% url 'create_group' %}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <label>Group Name</label>
+    <input type="text" name="name" required />
+
+    <label>Group Image (optional)</label>
+    <input type="file" name="image">
+
+    <label>Select Members</label>
+    <select name="members" multiple style="height: 150px; width:100%; padding:10px;">
+        {% for user in users %}
+            <option value="{{ user.id }}">{{ user.username }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Create Group</button>
+</form>
+
+</div>
+
+</body>
+</html>

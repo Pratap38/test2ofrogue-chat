@@ -1,0 +1,226 @@
+/* =============== RESET & THEME =============== */
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          transition: background 0.3s, color 0.3s;
+        }
+        html, body {
+          height: 100%;
+        }
+        body {
+          background-color: var(--bg);
+          color: var(--text);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        :root {
+          --bg: #f0f2f5;
+          --chat-bg: #ffffff;
+          --text: #111;
+          --header-bg: #0095f6;
+          --header-text: #fff;
+          --input-bg: #f9f9f9;
+          --input-border: #ccc;
+          --bubble-self: #dcf8c6;
+          --bubble-other: #fff;
+          --scroll-thumb: #ccc;
+        }
+
+        body.dark {
+          --bg: #121212;
+          --chat-bg: #1e1e1e;
+          --text: #eaeaea;
+          --header-bg: #333;
+          --header-text: #fff;
+          --input-bg: #262626;
+          --input-border: #444;
+          --bubble-self: #056162;
+          --bubble-other: #262d31;
+          --scroll-thumb: #444;
+        }
+
+        /* =============== CONTAINER =============== */
+        .chat-box {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          width: 100%;
+          max-width: 750px;
+          height: 90vh;
+          background-color: var(--chat-bg);
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* =============== HEADER =============== */
+        .chat-header {
+          background-color: var(--header-bg);
+          color: var(--header-text);
+          padding: 1rem;
+          font-weight: 600;
+          font-size: 1.1rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .chat-header .actions {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+        }
+        .mode-toggle {
+          background: none;
+          border: none;
+          color: var(--header-text);
+          font-size: 1.3rem;
+          cursor: pointer;
+        }
+
+        /* =============== MESSAGES =============== */
+        #messages {
+          flex: 1;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 0.8rem;
+          padding: 1rem;
+          background-color: var(--bg);
+          scroll-behavior: smooth;
+        }
+        #messages::-webkit-scrollbar {
+          width: 6px;
+        }
+        #messages::-webkit-scrollbar-thumb {
+          background-color: var(--scroll-thumb);
+          border-radius: 4px;
+        }
+
+        .message {
+          max-width: 75%;
+          padding: 0.6rem 0.9rem;
+          border-radius: 12px;
+          word-wrap: break-word;
+          line-height: 1.3;
+          animation: fadeIn 0.2s ease;
+          display: flex;
+          flex-direction: column;
+        }
+        .message b {
+          font-size: 0.8rem;
+          margin-bottom: 2px;
+          opacity: 0.8;
+        }
+        .self {
+          align-self: flex-end;
+          background-color: var(--bubble-self);
+          border-bottom-right-radius: 3px;
+        }
+        .other {
+          align-self: flex-start;
+          background-color: var(--bubble-other);
+          border-bottom-left-radius: 3px;
+        }
+
+        @keyframes fadeIn {
+          from {opacity: 0; transform: translateY(5px)}
+          to {opacity: 1; transform: translateY(0)}
+        }
+
+        /* =============== INPUT AREA =============== */
+        .input-area {
+          display: flex;
+          align-items: center;
+          background-color: var(--input-bg);
+          border-top: 1px solid var(--input-border);
+          padding: 0.6rem 0.8rem;
+          gap: 0.6rem;
+        }
+
+        .input-area input {
+          flex: 1;
+          padding: 0.55rem 1rem;
+          border-radius: 20px;
+          border: 1px solid var(--input-border);
+          outline: none;
+          background-color: var(--chat-bg);
+          color: var(--text);
+          font-size: 0.95rem;
+        }
+
+        .input-area button {
+          background-color: var(--header-bg);
+          border: none;
+          color: var(--header-text);
+          border-radius: 50%;
+          width: 42px;
+          height: 42px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          cursor: pointer;
+          font-size: 1.2rem;
+        }
+
+        .input-area button:hover {
+          opacity: 0.9;
+        }
+
+        /* =============== USERNAME PROMPT =============== */
+        .username-prompt {
+          padding: 1rem;
+          text-align: center;
+          background: var(--chat-bg);
+          border-bottom: 1px solid var(--input-border);
+        }
+        .username-prompt input {
+          padding: 0.4rem 0.6rem;
+          border-radius: 6px;
+          border: 1px solid var(--input-border);
+          background: var(--bg);
+          color: var(--text);
+          margin-left: 5px;
+        }
+        .username-prompt button {
+          padding: 0.4rem 0.8rem;
+          background-color: var(--header-bg);
+          border: none;
+          color: var(--header-text);
+          border-radius: 6px;
+          margin-left: 5px;
+          cursor: pointer;
+        }
+
+        /* =============== RESPONSIVE =============== */
+        @media (max-width: 768px) {
+          .chat-box {
+            max-width: 100%;
+            height: 100vh;
+            border-radius: 0;
+          }
+          .chat-header {
+            font-size: 1rem;
+            padding: 0.8rem;
+          }
+          .message {
+            max-width: 85%;
+          }
+          .input-area input {
+            padding: 0.45rem 0.9rem;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .chat-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.3rem;
+          }
+          .message {
+            font-size: 0.9rem;
+          }
+        }

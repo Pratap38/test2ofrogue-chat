@@ -1,0 +1,151 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{%static 'profile.css'%}">
+  <title>{{ profile.user.username }}'s Profile</title>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+  />
+  <style>
+   
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="content">
+      <div class="logo-left">
+        <img src="{% static 'morphee.png' %}" alt="logo" />
+      </div>
+
+      <div class="navsection">
+        <nav>
+          <ul>
+            <a href="{% url 'home' %}"><li><i class="bi bi-house"></i> Home</li></a>
+            <a href="{% url 'post_create' %}"
+              ><li><i class="bi bi-plus-square"></i> Post</li></a
+            >
+            <a href="{% url 'profile' request.user.username %}"><li><i class="bi bi-person"></i> Profile</li></a>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="chat-icon">
+        <a href="{% url 'chat' %}"><i class="bi bi-chat"></i> Chats</a>
+      </div>
+
+      <button class="mode-toggle" id="modeToggle" title="Toggle theme">
+        <i class="bi bi-moon"></i>
+      </button>
+    </div>
+
+    <div class="mobile-nav">
+      <a href="{%url 'home'%}"><i class="bi bi-house"></i> Home</a>
+      <a href="{%url 'search'%}"><i class="bi bi-search"></i> Search</a>
+      <a href="{%url 'post_create'%}"><i class="bi bi-plus-square"></i> Post</a>
+      <a href="{% url 'profile' request.user.username %}"
+        ><i class="bi bi-person"></i> Profile</a
+      >
+      <a href="{% url 'chat' %}"><i class="bi bi-chat"></i> Chat</a>
+    </div>
+  </header>
+
+  <div class="profile-header">
+    {% if profile %}
+      {% if profile.profile_pic %}
+        <img src="{{ profile.profile_pic.url }}" alt="Profile Pic" class="profile-pic" />
+      {% else %}
+        <img src="{% static 'default_profile.png' %}" alt="Profile Pic" class="profile-pic" />
+      {% endif %}
+
+      <h2>@{{ profile.user.username }}</h2>
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="profile_pic" class="upload-label">Change Profile Picture</label>
+        <input type="file" name="profile_pic" id="profile_pic" accept="image/*" />
+        <textarea name="bio" placeholder="Write your bio..." rows="3">{{ profile.bio }}</textarea>
+        <button type="submit">Update Profile</button>
+      </form>
+
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Logout</button>
+      </form>
+    {% else %}
+      <p>This user has no profile yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="posts-section">
+    {% for post in posts %}
+      <div class="post-card">
+        <div class="post-header">
+          <b>{{ post.user.username }}</b> • {{ post.timestamp|date:"M d, Y H:i" }}
+          {% if request.user == post.user %}
+            <a href="{% url 'delete_post' post.id %}" class="delete-btn">Delete</a>
+          {% endif %}
+        </div>
+
+        <div class="post-media">
+          {% if post.image %}
+            <img src="{{ post.image.url }}" alt="Post image" />
+          {% elif post.video %}
+            <video controls>
+              <source src="{{ post.video.url }}" type="video/mp4" />
+            </video>
+          {% endif %}
+        </div>
+
+        {% if post.description %}
+          <div class="post-description">{{ post.description }}</div>
+        {% endif %}
+
+        <div class="post-comments">
+          <h4>Comments:</h4>
+          {% for comment in post.comments.all %}
+            <div class="comment">
+              <b>{{ comment.user.username }}</b>: {{ comment.text }}
+            </div>
+          {% endfor %}
+          <form method="post" action="{% url 'add_comment' post.id %}">
+            {% csrf_token %}
+            <input
+              type="text"
+              name="text"
+              placeholder="Add a comment..."
+              required
+            />
+            <button type="submit">Comment</button>
+          </form>
+        </div>
+      </div>
+    {% empty %}
+      <p style="text-align:center;">No posts yet.</p>
+    {% endfor %}
+  </div>
+
+  <script>
+    // Dark / light toggle persistence
+    const body = document.body;
+    const toggleBtn = document.getElementById("modeToggle");
+    const savedMode = localStorage.getItem("profileTheme");
+    if (savedMode === "dark") {
+      body.classList.add("dark");
+      toggleBtn.innerHTML = '<i class="bi bi-sun"></i>';
+    }
+    toggleBtn.onclick = () => {
+      body.classList.toggle("dark");
+      const dark = body.classList.contains("dark");
+      toggleBtn.innerHTML = dark
+        ? '<i class="bi bi-sun"></i>'
+        : '<i class="bi bi-moon"></i>';
+      localStorage.setItem("profileTheme", dark ? "dark" : "light");
+    };
+  </script>
+</body>
+</html>

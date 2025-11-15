@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search User</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="{% static 'search.css' %}">
+</head>
+
+<body>
+  <div class="container">
+    <h1>Search User</h1>
+
+    <a href="{% url 'home' %}" class="back-btn">
+      <i class="fa fa-angle-double-left" style="font-size:24px"></i>
+    </a>
+
+    <form method="get" action="{% url 'search' %}" class="search-form">
+      <input type="text" name="q" placeholder="Enter username" value="{{ query }}" />
+      <button type="submit">Search</button>
+    </form>
+
+    {% if query %}
+      {% if profile %}
+        <!-- ====== USER PROFILE SECTION ====== -->
+        <div class="profile-card">
+          <img src="{{ profile.profile_pic.url }}" alt="{{ profile.full_name }}">
+          <h2>{{ profile.full_name }}</h2>
+          <p>{{ profile.bio }}</p>
+          <p>Username: {{ profile.user.username }}</p>
+          <p>Phone: {{ profile.phone }}</p>
+          <p>Email: {{ profile.email }}</p>
+        </div>
+
+        <h3>Posts by {{ profile.user.username }}</h3>
+      {% else %}
+        <p class="not-found">No user found with username "{{ query }}".</p>
+      {% endif %}
+    {% else %}
+      <h3>Explore Latest Posts</h3>
+    {% endif %}
+
+    <!-- ====== POSTS SECTION (SHOWS ALWAYS) ====== -->
+    <div class="posts-section">
+      {% if posts %}
+        {% for post in posts %}
+          <div class="post-card">
+            <div class="post-header">
+              <b>{{ post.user.username }}</b> • {{ post.timestamp|date:"M d, Y H:i" }}
+              {% if request.user == post.user %}
+              <form method="post" action="{% url 'delete_post' post.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="delete-btn">Delete</button>
+              </form>
+              {% endif %}
+            </div>
+
+            <div class="post-media">
+              {% if post.image %}
+                <img src="{{ post.image.url }}" alt="Post image" />
+              
+              {% endif %}
+            </div>
+
+            <div class="post-comments">
+              <h4>Comments</h4>
+              {% for comment in post.comments.all %}
+                <div class="comment">
+                  <b>{{ comment.user.username }}</b>: {{ comment.text }}
+                </div>
+              {% empty %}
+                <p>No comments yet.</p>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No posts yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

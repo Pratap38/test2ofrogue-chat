@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Community Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{%static 'chat.css'%}">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        
+    </style>
+</head>
+<body>
+    <div class="chat-box">
+        <!-- Header -->
+        <div class="chat-header">
+          🌐 Community Global Chat
+          <div class="actions">
+            <button class="mode-toggle" id="modeToggle" title="Toggle dark/light mode">
+              <i class="bi bi-moon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Username prompt if not logged in -->
+        {% if not request.user.is_authenticated %}
+        <div class="username-prompt">
+          Enter your username:
+          <input type="text" id="usernameInput" placeholder="Username">
+          <button id="enterChatBtn">Enter Chat</button>
+        </div>
+        {% endif %}
+
+        <!-- Messages -->
+        <div id="messages">
+            {% for msg in messages %}
+              <div class="message {% if msg.user.username == request.user.username %}self{% else %}other{% endif %}">
+                <b>{{ msg.user.username }}</b> {{ msg.content }}
+              </div>
+            {% endfor %}
+        </div>
+
+        <!-- Input area -->
+        <div class="input-area">
+          <input id="messageInput" type="text" placeholder="Type a message..." autocomplete="off">
+          <button id="sendBtn"><i class="bi bi-send"></i></button>
+        </div>
+    </div>
+<script>
+  // ==================== DETERMINE USERNAME ====================
+  let finalUsername = "{{ request.user.username }}";
+  const guestName = localStorage.getItem('guestName');
+  if (!finalUsername && guestName) finalUsername = guestName;
+  if (!finalUsername) finalUsername = "Anonymous";
+
+  // ==================== CHAT FUNCTIONALITY ====================
+  const messagesDiv = document.getElementById('messages');
+  const messageInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+
+  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const chatSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/chat/');
+
+  chatSocket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+      const msgEl = document.createElement('div');
+      msgEl.className = 'message ' + (data.username === finalUsername ? 'self' : 'other');
+      msgEl.innerHTML = `<b>${data.username}</b> ${data.message}`;
+      messagesDiv.appendChild(msgEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  };
+
+  sendBtn.onclick = function() {
+      const message = messageInput.value.trim();
+      if (message) {
+          chatSocket.send(JSON.stringify({
+              'message': message,
+              'username': finalUsername
+          }));
+          messageInput.value = '';
+      }
+  };
+
+  messageInput.addEventListener("keyup", function(e) {
+      if (e.key === "Enter") sendBtn.click();
+  });
+
+  // ==================== MODE TOGGLE ====================
+  const toggleBtn = document.getElementById('modeToggle');
+  const body = document.body;
+  const savedMode = localStorage.getItem('zchat-mode');
+  if (savedMode === 'dark') body.classList.add('dark');
+  toggleBtn.onclick = () => {
+    body.classList.toggle('dark');
+    localStorage.setItem('zchat-mode', body.classList.contains('dark') ? 'dark' : 'light');
+    toggleBtn.innerHTML = body.classList.contains('dark')
+      ? '<i class="bi bi-sun"></i>'
+      : '<i class="bi bi-moon"></i>';
+  };
+
+  // ==================== GUEST USER PROMPT ====================
+  const enterBtn = document.getElementById('enterChatBtn');
+  if (enterBtn) {
+    enterBtn.onclick = () => {
+      const name = document.getElementById('usernameInput').value.trim();
+      if (name) {
+        localStorage.setItem('guestName', name);
+        window.location.reload();
+      }
+    };
+  }
+</script>
+</body>
+</html>

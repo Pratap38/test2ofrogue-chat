@@ -1,0 +1,238 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{ group.name }} - Group Chat</title>
+
+<style>
+/* PAGE */
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #f7f7f7;
+}
+
+/* HEADER */
+.header {
+    display: flex;
+    align-items: center;
+    background: #008069;
+    padding: 12px;
+    color: white;
+    font-size: 20px;
+}
+
+.header img {
+    height: 45px;
+    width: 45px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+.hamburger {
+    margin-right: 12px;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+/* SIDEBAR */
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: white;
+    overflow-x: hidden;
+    transition: 0.3s;
+    padding-top: 60px;
+    box-shadow: 2px 0 10px #ccc;
+}
+
+.sidebar a {
+    display: block;
+    padding: 12px;
+    font-size: 18px;
+    text-decoration: none;
+    color: #333;
+}
+
+.sidebar b {
+    padding-left: 12px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+/* CHAT */
+#messages {
+    height: 70vh;
+    overflow-y: scroll;
+    padding: 20px;
+    background: white;
+}
+
+.msg {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #e8e8e8;
+    border-radius: 10px;
+    width: fit-content;
+    max-width: 70%;
+}
+
+.msg.me {
+    background: #d9fdd3;
+    margin-left: auto;
+}
+
+/* MESSAGE INPUT */
+.bottom {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 15px;
+    display: flex;
+    background: white;
+    box-shadow: 0 -2px 5px #ccc;
+}
+
+.bottom input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.bottom button {
+    padding: 12px 20px;
+    margin-left: 10px;
+    background: #008069;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- SIDEBAR / GROUP INFO -->
+<div id="sidebar" class="sidebar">
+
+    <span class="close-btn" onclick="closeSidebar()">✖</span>
+
+   <b>👥 Group Members ({{ group.members.count }})</b><br><br>
+
+{% for m in group.members.all %}
+    <a>👤 {{ m.user.username }}</a>
+{% endfor %}
+
+    {% if group.created_by == request.user %}
+    <br>
+    <a href="{% url 'add_group_member' group.id %}" style="color:#008069;">
+        ➕ Add Member
+    </a>
+    {% endif %}
+</div>
+<h2>Your Groups</h2>
+{% if groups %}
+    <ul>
+    {% for group in groups %}
+        <li>
+            <a href="{% url 'group_chat' group.id %}">{{ group.name }}</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>You are not added to any group yet.</p>
+{% endif %}
+
+
+
+<!-- HEADER -->
+<div class="header">
+    <span class="hamburger" onclick="openSidebar()">☰</span>
+
+    {% if group.image %}
+        <img src="{{ group.image.url }}" alt="Group Image">
+    {% endif %}
+
+    <div>{{ group.name }}</div>
+</div>
+
+
+<!-- CHAT MESSAGES -->
+<div id="messages">
+    {% for m in messages %}
+        <div class="msg {% if m.sender == request.user %}me{% endif %}">
+            <b>{{ m.sender.username }}</b>: {{ m.content }}
+
+            {% if m.file %}
+                <br>
+                <a href="{{ m.file.url }}" target="_blank">📎 File</a>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+
+<!-- MESSAGE INPUT -->
+<div class="bottom">
+    <input id="msg-input" type="text" placeholder="Type a message...">
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+
+<script>
+/* SIDEBAR OPEN/CLOSE */
+function openSidebar() {
+    document.getElementById("sidebar").style.width = "260px";
+}
+function closeSidebar() {
+    document.getElementById("sidebar").style.width = "0";
+}
+
+/* WEBSOCKET */
+const GROUP_ID = "{{ group.id }}";
+const USERNAME = "{{ request.user.username }}";
+
+const groupSocket = new WebSocket(
+    "ws://" + window.location.host + "/ws/group/" + GROUP_ID + "/"
+);
+
+groupSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+
+    let msgBox = document.getElementById("messages");
+    msgBox.innerHTML += `
+        <div class="msg ${data.sender === USERNAME ? 'me' : ''}">
+            <b>${data.sender}</b>: ${data.message}
+            ${data.file_url ? `<br><a href="${data.file_url}" target="_blank">📎 File</a>` : ""}
+        </div>
+    `;
+
+    msgBox.scrollTop = msgBox.scrollHeight;
+};
+
+function sendMessage() {
+    let messageInput = document.getElementById("msg-input");
+
+    groupSocket.send(JSON.stringify({
+        "sender": USERNAME,
+        "message": messageInput.value
+    }));
+
+    messageInput.value = "";
+}
+</script>
+
+</body>
+</html>

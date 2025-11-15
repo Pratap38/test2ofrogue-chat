@@ -1,0 +1,233 @@
+ /* ---------------- Base Reset ---------------- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      transition: background 0.3s, color 0.3s, border-color 0.3s;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ---------- Light (default) ---------- */
+    :root {
+      --bg: #f8f8f8;
+      --card: #ffffff;
+      --text: #222;
+      --muted: #555;
+      --border: #dddddd;
+      --accent: #007bff;
+    }
+
+    /* ---------- Automatic Dark Mode ---------- */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121212;
+        --card: #1f1f1f;
+        --text: #e4e4e4;
+        --muted: #aaa;
+        --border: #333;
+        --accent: #4dabf7;
+      }
+    }
+
+    /* ---------- Layout ---------- */
+    .container {
+      padding: 15px;
+      max-width: 480px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* ---------- Search form ---------- */
+    .search-form {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .search-form input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 5px 0 0 5px;
+      border: 1px solid var(--border);
+      font-size: 16px;
+      background-color: var(--card);
+      color: var(--text);
+    }
+    .search-form input::placeholder { color: var(--muted); }
+    .search-form button {
+      padding: 10px;
+      border: none;
+      background-color: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+    }
+    .search-form button:hover { opacity: 0.9; }
+
+    /* ---------- Profile Card ---------- */
+    .profile-card {
+      background-color: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .profile-card img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+      border: 2px solid var(--accent);
+    }
+    #back_button a{
+      border: 40px solid red;
+      margin: 4rem;
+      
+    }
+    /* ---------- Posts ---------- */
+    .posts {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .post-card {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .post-card img,
+    .post-card video {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .post-card p { margin: 5px 0; }
+    .post-card small { color: var(--muted); }
+
+    /* ---------- Not Found ---------- */
+    .not-found {
+      text-align: center;
+      color: var(--accent);
+      margin-top: 20px;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 480px) {
+      .search-form input,
+      .search-form button {
+        font-size: 14px;
+        padding: 8px;
+      }
+      .profile-card img {
+        width: 100px;
+        height: 100px;
+      }
+    }
+    /* ===== POSTS SECTION (Instagram-like style) ===== */
+.posts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 2rem;
+  padding: 0 10px;
+}
+
+.post-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  font-size: 14px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+}
+
+.delete-btn {
+  background: #ff4d4d;
+  border: none;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.delete-btn:hover {
+  background: #d93636;
+}
+
+.post-media img,
+.post-media video {
+  width: 100%;
+  display: block;
+  max-height: 380px;
+  object-fit: cover;
+}
+
+.post-comments {
+  padding: 12px 15px;
+  font-size: 14px;
+  color: #333;
+}
+
+.post-comments h4 {
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #555;
+}
+
+.comment {
+  margin-bottom: 5px;
+}
+
+.comment b {
+  color: #222;
+}
+
+/* Subtle Instagram feel */
+body {
+  background: #fafafa;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.container h1, .container h3 {
+  color: #333;
+}
+
+.back-btn {
+  display: inline-block;
+  color: #333;
+  text-decoration: none;
+  margin-bottom: 10px;
+}

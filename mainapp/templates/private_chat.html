@@ -1,0 +1,553 @@
+{%load static%}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat with {{ receiver.username }}</title>
+    
+</head>
+    <style>
+/* =============== RESET & THEME =============== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  transition: background 0.3s, color 0.3s;
+}
+
+html, body {
+  height: 100%;
+}
+
+:root {
+  --bg: #0b141a;
+  --chat-bg: #1e1e1e;
+  --text: #eaeaea;
+  --header-bg: #202c33;
+  --header-text: #fff;
+  --input-bg: #2a3942;
+  --input-border: #444;
+  --bubble-self: #005c4b;
+  --bubble-other: #2a2f32;
+  --scroll-thumb: #444;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* =============== CHAT CONTAINER =============== */
+.chat-container {
+  width: 100%;
+  max-width: 750px;
+  height: 90vh;
+  background-color: var(--chat-bg);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* =============== HEADER =============== */
+.chat-header {
+  background-color: var(--header-bg);
+  color: var(--header-text);
+  padding: 1rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.chat-header img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: 2px solid #25d366;
+  object-fit: cover;
+}
+
+.chat-header .user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header .user-info h3 {
+  font-size: 1.1rem;
+  color: var(--header-text);
+}
+
+.chat-header .user-info span {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+/* =============== MESSAGES =============== */
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem;
+  background-color: var(--bg);
+  /* background-image: url('https://i.ibb.co/kHw8yGz/chat-bg.png'); */
+  background-size: cover;
+  background-position: center;
+  scroll-behavior: smooth;
+}
+
+#messages::-webkit-scrollbar {
+  width: 6px;
+}
+#messages::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-thumb);
+  border-radius: 4px;
+}
+
+.message {
+  max-width: 75%;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  word-wrap: break-word;
+  line-height: 1.4;
+  animation: fadeIn 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.95rem;
+}
+
+.message b {
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+  opacity: 0.8;
+}
+
+.sent {
+  align-self: flex-end;
+  background-color: var(--bubble-self);
+  border-bottom-right-radius: 3px;
+  color: #fff;
+}
+
+.received {
+  align-self: flex-start;
+  background-color: var(--bubble-other);
+  border-bottom-left-radius: 3px;
+  color: #e5e5e5;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(5px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+/* =============== INPUT AREA =============== */
+.chat-input {
+  background-color: var(--input-bg);
+  display: flex;
+  align-items: center;
+  padding: 0.8rem;
+  border-top: 1px solid var(--input-border);
+  gap: 0.6rem;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border-radius: 20px;
+  border: 1px solid var(--input-border);
+  outline: none;
+  background-color: var(--chat-bg);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.chat-input button {
+  background-color: #25d366;
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.chat-input button:hover {
+  opacity: 0.9;
+}
+
+/* =============== RESPONSIVE =============== */
+@media (max-width: 768px) {
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg);
+    overflow: hidden;
+  }
+
+  .chat-container {
+    max-width: 100%;
+    height: 100vh;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  .chat-header {
+    font-size: 1rem;
+    padding: 0.8rem;
+  }
+
+  .message {
+    max-width: 85%;
+  }
+
+
+.message a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    margin-top: 5px;
+    background-color: #1a1a1a;
+    color: #9BE7FF;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    word-break: break-word;
+    transition: background 0.2s;
+}
+
+.message a:hover {
+    background-color: #333;
+}
+
+.message p {
+    margin: 0;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+/* Optional: make PDF, DOC icons inline */
+.message a::before {
+    content: "📎";
+}
+
+/* Scrollbar for messages */
+#messages {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+#messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+#messages::-webkit-scrollbar-thumb {
+    background-color: var(--scroll-thumb);
+    border-radius: 3px;
+}
+
+#messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+  .chat-input {
+    padding: 0.6rem;
+  }
+
+  .chat-input input {
+    padding: 0.5rem 0.9rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .chat-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .message {
+    font-size: 0.9rem;
+  }
+}
+
+    </style>
+<body>
+
+<div class="chat-container">
+
+    <!-- HEADER -->
+    <div class="chat-header">
+        {% if receiver_profile and receiver_profile.profile_pic %}
+            <img src="{{ receiver_profile.profile_pic.url }}" alt="{{ receiver.username }}">
+        {% else %}
+            <img src="data:image/png;base64,iVBORw0KG..." alt="Default Avatar">
+        {% endif %}
+        <div class="user-info">
+            <h3>{{ receiver.username }} 
+   {% if receiver.profile.is_user_online %}
+    <span style="color:green">● Online</span>
+{% else %}
+    <span style="color:gray">● Last seen {{ receiver.profile.last_seen }}</span>
+{% endif %}
+
+</h3>
+
+        </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div id="messages">
+        {% for msg in messages %}
+            <div class="message {% if msg.sender == request.user %}sent{% else %}received{% endif %}">
+                
+     {% if msg.file %}
+    {% with msg.file.url as file_url %}
+        {% with file_url|slice:"-4:" as ext %}
+            {% if ext|lower in ".jpg .jpeg .png .gif .webp" %}
+                <!-- Image preview -->
+                <a href="{{ file_url }}" target="_blank" download>
+                    <img src="{{ file_url }}" style="max-width:200px; border-radius:8px; margin-top:5px;">
+                </a>
+            {% else %}
+                <!-- Other files -->
+                <a href="{{ file_url }}" target="_blank" download style="color:#9BE7FF; display:inline-block; margin-top:5px;">
+                    📎 Download {{ msg.file.name }}
+                </a>
+            {% endif %}
+        {% endwith %}
+    {% endwith %}
+{% endif %}
+
+
+                {% if msg.content %}
+                    {{ msg.content }}
+                {% endif %}
+
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- INPUT BOX -->
+    <div class="chat-input">
+        
+        <!-- Hidden File Input -->
+        <input type="file" id="fileInput" style="display:none;" onchange="sendFile(event)">
+
+        <!-- Attach Button -->
+        <button onclick="document.getElementById('fileInput').click()" 
+                style="background:#007bff;font-size:18px;">📎</button>
+
+        <!-- Message Text -->
+        <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+
+        <!-- Send -->
+        <button onclick="sendMessage()">➤</button>
+    </div>
+
+</div>
+<audio id="notify-sound" src="{% static 'sounds/jai.mp3' %}" preload="auto"></audio>
+
+<script>
+/* ==========================
+   BASIC CONSTANTS
+========================== */
+const roomName = "{{ room_name }}";
+const sender = "{{ request.user.username }}";
+const receiver = "{{ receiver.username }}";
+const chatSocket = new WebSocket("ws://" + window.location.host + "/ws/private/" + roomName + "/");
+
+
+/* ==========================
+   TRACK TAB FOCUS
+========================== */
+let windowFocused = true;
+window.onfocus = () => windowFocused = true;
+window.onblur = () => windowFocused = false;
+
+/* ==========================
+   NOTIFICATION PERMISSION
+========================== */
+if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+}
+
+function showNotification(senderName, message) {
+    if (Notification.permission === "granted") {
+        new Notification("New message from " + senderName, {
+            body: message ? message.substring(0, 60) : "📎 Sent a file",
+            icon: "{% if receiver_profile and receiver_profile.profile_pic %}{{ receiver_profile.profile_pic.url }}{% else %}{% static 'img/default.png' %}{% endif %}"
+
+        });
+    }
+}
+
+function playSound() {
+    document.getElementById("notify-sound").play();
+}
+
+/* ==========================
+   RECEIVE MESSAGE
+========================== */
+chatSocket.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    const box = document.getElementById("messages");
+
+    // TYPING INDICATOR
+    if (data.type === "typing") {
+        if (data.username !== sender) {
+            document.getElementById("typing-status").innerText =
+                data.typing ? "Typing..." : "";
+        }
+        return;
+    }
+
+    // CREATE MESSAGE DIV
+    const div = document.createElement("div");
+    div.classList.add("message", data.sender === sender ? "sent" : "received");
+
+    // TEXT MESSAGE
+    if (data.message) {
+        const p = document.createElement("p");
+        p.innerText = data.message;
+        div.appendChild(p);
+    }
+
+    // FILE PREVIEW
+    if (data.file_url) {
+        const fileUrl = data.file_url;
+        const fileExt = fileUrl.split('.').pop().toLowerCase();
+        const imgExt = ["jpg", "jpeg", "png", "gif", "webp"];
+
+        if (imgExt.includes(fileExt)) {
+            const a = document.createElement("a");
+            a.href = fileUrl;
+            a.target = "_blank";
+
+            const img = document.createElement("img");
+            img.src = fileUrl;
+            img.style.maxWidth = "200px";
+            img.style.borderRadius = "8px";
+            img.style.marginTop = "5px";
+
+            a.appendChild(img);
+            div.appendChild(a);
+        } else {
+            const a = document.createElement("a");
+            a.href = fileUrl;
+            a.target = "_blank";
+            a.innerText = "📎 Download " + (fileUrl.split('/').pop());
+            a.style.color = "#9BE7FF";
+            a.style.display = "inline-block";
+            div.appendChild(a);
+        }
+    }
+
+    // ADD MESSAGE TO BOX
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+
+    // PLAY SOUND + SHOW NOTIFICATION IF TAB NOT FOCUSED
+    if (data.sender !== sender && !windowFocused) {
+        playSound();
+        showNotification(data.sender, data.message);
+    }
+};
+
+/* ==========================
+   SEND TEXT MESSAGE
+========================== */
+function sendMessage() {
+    const input = document.getElementById("messageInput");
+    const message = input.value.trim();
+    if (!message) return;
+
+    chatSocket.send(JSON.stringify({
+        type: "private_message",
+        sender: sender,
+        receiver: receiver,
+        message: message
+    }));
+
+    input.value = "";
+}
+
+document.getElementById("messageInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
+});
+
+/* ==========================
+   SEND FILE
+========================== */
+function sendFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("sender", sender);
+    formData.append("receiver", receiver);
+
+    fetch("/upload-private-file/", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        chatSocket.send(JSON.stringify({
+            type: "private_message",
+            sender: sender,
+            receiver: receiver,
+            file_url: data.file_url
+        }));
+    });
+}
+
+/* ==========================
+   TYPING INDICATOR
+========================== */
+let typingTimeout;
+let isTyping = false;
+const inputBox = document.getElementById("messageInput");
+
+inputBox.addEventListener("input", () => {
+    if (!isTyping) {
+        isTyping = true;
+        chatSocket.send(JSON.stringify({
+            "type": "typing",
+            "username": sender,
+            "typing": true
+        }));
+    }
+
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        isTyping = false;
+        chatSocket.send(JSON.stringify({
+            "type": "typing",
+            "username": sender,
+            "typing": false
+        }));
+    }, 1000);
+});
+</script>
+
+
+</body>
+</html>

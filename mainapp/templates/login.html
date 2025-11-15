@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{%static 'login.css'%}">
+  <title>RogueLogin</title>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+  />
+  <style>
+
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="Login">
+      <div class="logo">
+        <img src="{% static 'morphee.png' %}" alt="logo" />
+      </div>
+      <div class="title">
+        <h1>ROGUE-Login</h1>
+        <button class="mode-toggle" id="modeToggle" title="Toggle dark/light mode">
+          <i class="bi bi-moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <form method="POST" class="forms">
+      {% csrf_token %}
+      {% if messages %}
+      {% for msg in messages %}
+      <p class="error-msg">{{ msg }}</p>
+      {% endfor %}
+      {% endif %}
+
+      <label for="email">Email</label>
+      <input
+        type="email"
+        name="email"
+        id="email"
+        placeholder="Enter your email"
+        required
+      />
+
+      <label for="password">Password</label>
+      <input
+        type="password"
+        name="password"
+        id="password"
+        placeholder="Enter password"
+        required
+      />
+
+      <button type="submit">Login</button>
+
+      <div class="signup-link">
+        Don't have an account?
+        <a href="{% url 'signup' %}">Sign up</a>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    // ---------- DARK/LIGHT TOGGLE ----------
+    const body = document.body;
+    const toggleBtn = document.getElementById("modeToggle");
+
+    // Load saved theme
+    const savedMode = localStorage.getItem("theme");
+    if (savedMode === "dark") {
+      body.classList.add("dark");
+      toggleBtn.innerHTML = '<i class="bi bi-sun"></i>';
+    }
+
+    // Toggle theme
+    toggleBtn.onclick = () => {
+      body.classList.toggle("dark");
+      const darkMode = body.classList.contains("dark");
+      toggleBtn.innerHTML = darkMode
+        ? '<i class="bi bi-sun"></i>'
+        : '<i class="bi bi-moon"></i>';
+      localStorage.setItem("theme", darkMode ? "dark" : "light");
+    };
+  </script>
+</body>
+</html>
