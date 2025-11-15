@@ -71,45 +71,42 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
-    async def receive(self, text_data=None):
-        if not text_data:
-            return
-        data = json.loads(text_data)
+ async def receive(self, text_data=None):
+    if not text_data:
+        return
+    data = json.loads(text_data)
 
-        # Typing indicator
-        if data.get("type") == "typing":
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "typing_status",
-                    "username": self.scope["user"].username,
-                    "typing": data.get("typing", False),
-                }
-            )
-            return
-
-        sender = self.scope["user"].username
-        receiver = data.get("receiver")
-        message = data.get("message", "")
-        file_base64 = data.get("file")
-
-        file_url = None
-        if file_base64:
-            file_url = await self.save_file(file_base64)
-
-        await self.save_message(sender, receiver, message, file_url)
-
-        # Broadcast message
+    # Typing indicator
+    if data.get("type") == "typing":
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                "type": "private_message",
-                "sender": sender,
-                "receiver": receiver,
-                "message": message,
-                "file_url": file_url,
+                "type": "typing_status",
+                "username": self.scope["user"].username,
+                "typing": data.get("typing", False),
             }
         )
+        return
+
+    # For private messages
+    sender = self.scope["user"].username
+    receiver = data.get("receiver")
+    message = data.get("message", "")
+    file_url = data.get("file_url")
+
+    await self.save_message(sender, receiver, message, file_url)
+
+    await self.channel_layer.group_send(
+        self.room_group_name,
+        {
+            "type": "private_message",
+            "sender": sender,
+            "receiver": receiver,
+            "message": message,
+            "file_url": file_url,
+        }
+    )
+
 
     async def private_message(self, event):
         await self.send(text_data=json.dumps(event))
