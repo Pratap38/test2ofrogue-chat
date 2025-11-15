@@ -58,10 +58,12 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"private_{self.room_name}"
 
-        # Close connection for anonymous users
+        # Assign a temporary username for anonymous users
         if self.scope["user"].is_anonymous:
-            await self.close()
-            return
+            # Create a guest username
+            import random, string
+            guest_name = "Guest_" + "".join(random.choices(string.ascii_letters + string.digits, k=6))
+            self.scope["user"].username = guest_name
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
