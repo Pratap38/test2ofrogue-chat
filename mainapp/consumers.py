@@ -3,10 +3,8 @@ import os
 import uuid
 import base64
 from channels.generic.websocket import AsyncWebsocketConsumer
-from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from django.conf import settings
-from django.contrib.auth import get_user_model
 
 # ------------------------ GLOBAL CHAT ------------------------
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -55,15 +53,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 
 # ------------------------ PRIVATE CHAT ------------------------
-User = get_user_model()
-
 class PrivateChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Get room_name from URL
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"private_{self.room_name}"
 
-        # Ensure only authenticated users can connect
+        # Close connection for anonymous users
         if self.scope["user"].is_anonymous:
             await self.close()
             return
@@ -71,11 +66,8 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
-        print(f"WebSocket connected: {self.room_group_name}")
-
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-        print(f"WebSocket disconnected: {self.room_group_name}")
 
     async def receive(self, text_data=None):
         if not text_data:
@@ -94,11 +86,10 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
             )
             return
 
-        # Regular private message
         sender = self.scope["user"].username
         receiver = data.get("receiver")
         message = data.get("message", "")
-        file_base64 = data.get("file")  # optional file
+        file_base64 = data.get("file")
 
         file_url = None
         if file_base64:
@@ -106,7 +97,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
         await self.save_message(sender, receiver, message, file_url)
 
-        # Broadcast to the room
+        # Broadcast message
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -130,6 +121,10 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, sender, receiver, message, file_url=None):
+        from django.contrib.auth import get_user_model
+        from .models import PrivateMessage
+
+        User = get_user_model()
         sender_user = User.objects.get(username=sender)
         receiver_user = User.objects.get(username=receiver)
         PrivateMessage.objects.create(
@@ -156,7 +151,6 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
 
 # ------------------------ GROUP CHAT ------------------------
 class GroupChatConsumer(AsyncWebsocketConsumer):
-
     async def connect(self):
         self.group_id = self.scope['url_route']['kwargs']['group_id']
         self.group_name = f"group_{self.group_id}"
@@ -168,7 +162,6 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def receive(self, text_data=None):
-        import json
         data = json.loads(text_data)
         sender = data.get("sender")
         message = data.get("message", "")
@@ -215,7 +208,6 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_file(self, file_base64):
-        from django.conf import settings
         header, data = file_base64.split(";base64,")
         ext = header.split("/")[-1]
         filename = f"{uuid.uuid4()}.{ext}"
