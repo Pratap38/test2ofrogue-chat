@@ -480,13 +480,14 @@ function sendMessage() {
     if (!message) return;
 
     chatSocket.send(JSON.stringify({
-        sender: sender,
+        type: "private_message",  // explicit type
         receiver: receiver,
         message: message
     }));
 
     input.value = "";
 }
+
 
 document.getElementById("messageInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") sendMessage();
