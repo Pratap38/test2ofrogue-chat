@@ -35,7 +35,7 @@
       </div>
 
       <div class="chat-icon">
-        <a href="{% url 'chat' %}"><i class="bi bi-chat"></i> Chats</a>
+         <a href="{% url 'chathome' %}"><i class="bi bi-chat"></i> Chats</a>
       </div>
 
       <button class="mode-toggle" id="modeToggle" title="Toggle theme">
@@ -50,7 +50,7 @@
       <a href="{% url 'profile' request.user.username %}"
         ><i class="bi bi-person"></i> Profile</a
       >
-      <a href="{% url 'chat' %}"><i class="bi bi-chat"></i> Chat</a>
+      <a href="{% url 'chathome' %}"><i class="bi bi-chat"></i> Chat</a>
     </div>
   </header>
 
