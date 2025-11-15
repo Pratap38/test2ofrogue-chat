@@ -54,40 +54,58 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 
 # ------------------------ PRIVATE CHAT ------------------------
+User = get_user_model()
+
 class PrivateChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        # Get room_name from URL
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"private_{self.room_name}"
+
+        # Ensure only authenticated users can connect
+        if self.scope["user"].is_anonymous:
+            await self.close()
+            return
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
+        print(f"WebSocket connected: {self.room_group_name}")
+
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        print(f"WebSocket disconnected: {self.room_group_name}")
 
-    async def receive(self, text_data=None, bytes_data=None):
+    async def receive(self, text_data=None):
         if not text_data:
             return
         data = json.loads(text_data)
 
+        # Typing indicator
         if data.get("type") == "typing":
             await self.channel_layer.group_send(
                 self.room_group_name,
-                {"type": "typing_status", "username": data.get("username"), "typing": data.get("typing", False)},
+                {
+                    "type": "typing_status",
+                    "username": self.scope["user"].username,
+                    "typing": data.get("typing", False),
+                }
             )
             return
 
-        sender = data.get("sender")
+        # Regular private message
+        sender = self.scope["user"].username
         receiver = data.get("receiver")
         message = data.get("message", "")
-        file_url = data.get("file_url") or None
-        file_base64 = data.get("file") or None
+        file_base64 = data.get("file")  # optional file
 
+        file_url = None
         if file_base64:
-            file_url = await self.save_file(sender, receiver, file_base64)
+            file_url = await self.save_file(file_base64)
 
         await self.save_message(sender, receiver, message, file_url)
 
+        # Broadcast to the room
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -96,30 +114,21 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
                 "receiver": receiver,
                 "message": message,
                 "file_url": file_url,
-            },
+            }
         )
 
     async def private_message(self, event):
-        await self.send(text_data=json.dumps({
-            "sender": event.get("sender"),
-            "receiver": event.get("receiver"),
-            "message": event.get("message"),
-            "file_url": event.get("file_url"),
-        }))
+        await self.send(text_data=json.dumps(event))
 
     async def typing_status(self, event):
         await self.send(text_data=json.dumps({
             "type": "typing",
-            "username": event.get("username"),
-            "typing": event.get("typing", False),
+            "username": event["username"],
+            "typing": event["typing"]
         }))
 
     @database_sync_to_async
     def save_message(self, sender, receiver, message, file_url=None):
-        from django.contrib.auth import get_user_model
-        from .models import PrivateMessage
-
-        User = get_user_model()
         sender_user = User.objects.get(username=sender)
         receiver_user = User.objects.get(username=receiver)
         PrivateMessage.objects.create(
@@ -130,9 +139,7 @@ class PrivateChatConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
-    def save_file(self, sender, receiver, file_base64):
-        from django.conf import settings
-
+    def save_file(self, file_base64):
         header, data = file_base64.split(";base64,")
         ext = header.split("/")[-1] or "bin"
         filename = f"{uuid.uuid4()}.{ext}"
