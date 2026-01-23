@@ -8,13 +8,14 @@ DEBUG = True  # Set False in production
 
 # ✅ Render deployment host
 ALLOWED_HOSTS = [
-    "test2ofrogue-chat-1.onrender.com",
+    ".onrender.com",
 ]
 
-# ✅ CSRF trusted origins for live site
 CSRF_TRUSTED_ORIGINS = [
-    "https://test2ofrogue-chat-1.onrender.com",
+    "https://*.onrender.com",
 ]
+
+
 
 # Application definition
 INSTALLED_APPS = [
